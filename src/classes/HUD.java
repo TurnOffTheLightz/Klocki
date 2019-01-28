@@ -1,8 +1,6 @@
 package classes;
 
 import Ids.BlockId;
-import classes.Handler;
-import inputs.MouseInput;
 import klocki.Block;
 
 import javax.imageio.ImageIO;
@@ -42,8 +40,8 @@ public class HUD {
         }
     }
     public void tick(){
-        for(Block block:blockList){
-            block.tick();
+        for(int i=0;i<blockList.size();i++){
+            blockList.get(i).tick();
         }
     }
 
@@ -72,5 +70,11 @@ public class HUD {
     }
     public Rectangle getBounds(){
         return new Rectangle(x,y,width,height);
+    }
+    public void insertNewRandomBlock(Point pointOfLastRemovedBlock){
+        Random rand = new Random();
+        int index = rand.nextInt(blockIds.size());
+        BlockId id = blockIds.get(index);
+        addBlock(new Block(pointOfLastRemovedBlock.x,pointOfLastRemovedBlock.y,id,false,handler));
     }
 }

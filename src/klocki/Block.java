@@ -3,7 +3,10 @@ package klocki;
 import Ids.BlockId;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
+
+import classes.Board;
 import classes.Handler;
 import inputs.MouseInput;
 
@@ -12,11 +15,17 @@ public class Block {
     private Handler handler;
     public ArrayList<Brick> brickList = new ArrayList<>();
 
+    private boolean isOnHud =   true;
     private boolean isOnBoard;
     private boolean isBeingDragged=false;
     private boolean isPulled=false;
     private boolean resized =   false;
+    private boolean newBlockAnimation = false;
+
     private int brickPattern[][];
+    private Point brickXYPositions [];
+
+    private Point lastPoint;
 
     public Block(int x, int y, BlockId blockId, boolean isOnBoard, Handler handler){
         this.x=x;
@@ -28,14 +37,13 @@ public class Block {
         int size=5;
         brickPattern = new int[size][size];
         createBlock(blockId,isOnBoard);
+        brickXYPositions = new Point[brickList.size()];
         setWidthAndHeight(brickPattern,32);
     }
     public void render(Graphics g){
         for(Brick brick:brickList){
             brick.render(g);
         }
-        g.setColor(Color.red);
-        g.drawRect(x,y,width,height);
     }
     public void tick(){
         if(isBeingDragged){
@@ -48,14 +56,42 @@ public class Block {
             rearrangeBricksPositionsOnDrag(brickPattern,scale);
         }
         if(isPulled){
-            int scale=32;
-            if(resized){
+            isOnBoard   =   checkIfIsLegalMove();
+
+
+            isBeingDragged=false;
+            isPulled=false;
+
+            if(isOnBoard){
+                isOnHud=false;
+                resized = false;
+                handler.board.acceptMove(brickXYPositions,brickList);
+                handler.hud.insertNewRandomBlock(new Point(startingX,startingY));
+                width=0;
+                height=0;
+            }else{
+                int scale=32;
                 resized=false;
                 resizeBricks(scale);
                 rearrangeBricksPositionsOnPull();
             }
-            isBeingDragged=false;
-            isPulled=false;
+        }
+    }
+    private boolean checkIfIsLegalMove(){
+        for(Rectangle r:getBoundsArray()){
+            if(!handler.board.getBounds().contains(r)){
+                return false;
+            }
+        }
+        setBrickXYPositions();
+        return handler.board.isLegalMove(brickXYPositions);
+    }
+    private void setBrickXYPositions(){
+        for(int i=0;i<brickList.size();i++){
+            Brick b = brickList.get(i);
+            int x = (b.getX()-handler.board.getX())/48;
+            int y = (b.getY()-handler.board.getY())/48;
+            brickXYPositions[i] = new Point(x,y);
         }
     }
 
@@ -76,49 +112,55 @@ public class Block {
             int mouseY=MouseInput.mouseDraggedY;
             int centerX=width/2;
             int centerY=height/2;
-        boolean isNowOnBoard = isBlockOnBoard();
 
-            int newX,newY;
-            newX    =   mouseX-centerX;
-            newY    =   mouseY-centerY;
-            for(int i=0;i<bricksAlreadyAdded;i++){
-                this.x=newX;
-                this.y=newY;
-            }
-            if(isNowOnBoard){
+        int newX,newY;
+        newX    =   mouseX-centerX;
+        newY    =   mouseY-centerY;
+        this.x=mouseX-width/2;
+        this.y=mouseY-height/2;
+        boolean isNowOnBoard = isMouseOnBoard(new Point(mouseX,mouseY));
+        if(isNowOnBoard){
+
                 for(int i=0;i<bricksAlreadyAdded;i++){
                     Brick b = brickList.get(i);
-                    int xx= Objects.requireNonNull(stickBlockToNearestLegalPosition(new Point(x,y))).x;
-                    int yy= Objects.requireNonNull(stickBlockToNearestLegalPosition(new Point(x,y))).y;
+                    int xx= Objects.requireNonNull(stickBlockToNearestLegalPosition(new Point(mouseX,mouseY))).x;
+                    int yy= Objects.requireNonNull(stickBlockToNearestLegalPosition(new Point(mouseX,mouseY))).y;
                     b.setXY(brickPositions[i].x+xx,brickPositions[i].y+yy);
                 }
-            }else{
+
+        }else{
                 for(int i=0;i<bricksAlreadyAdded;i++){
                     Brick b = brickList.get(i);
                     b.setXY(brickPositions[i].x+newX,brickPositions[i].y+newY);
                 }
-            }
-
+        }
     }
 
-    private boolean isBlockOnBoard(){
-        Rectangle r = new Rectangle(x,y,width,height);
-        return handler.board.getBounds().contains(r);
+    private boolean isMouseOnBoard(Point mouseXY){
+        return handler.board.getBounds().contains(mouseXY);
     }
 
     private Point stickBlockToNearestLegalPosition(Point xy){
+        Rectangle boardRect = handler.board.getBounds();
+
 
         for(int i=0;i<handler.board.getFieldsBoundsArray().length;i++){
             if(handler.board.getFieldsBoundsArray()[i].contains(xy)){
                 int x = handler.board.getFieldsBoundsArray()[i].x;
                 int y = handler.board.getFieldsBoundsArray()[i].y;
-                return new Point(x,y);
+                if(x+width<=boardRect.x+ boardRect.width    &&
+                        y+height<=boardRect.y+boardRect.height  &&
+                        x>=boardRect.x  &&
+                        y>=boardRect.y)
+                {
+                    lastPoint = new Point(x,y);
+                    return new Point(x,y);
+                }
             }
         }
+        if(lastPoint==null)lastPoint    =   new Point(handler.board.getFieldsBoundsArray()[0].x,handler.board.getFieldsBoundsArray()[0].y);
 
-        int x = handler.board.getFieldsBoundsArray()[0].x;
-        int y = handler.board.getFieldsBoundsArray()[0].y;
-        return new Point(x,y);
+        return lastPoint;
     }
     private void rearrangeBricksPositionsOnPull(){
         for(Brick b:brickList){
@@ -156,17 +198,35 @@ public class Block {
         int size = patternBoard.length;
         int amountOfBricksInBlock = brickList.size(), bricksAlreadyChecked=0;
 
+        int rowCounter=0,colCounter=0;
         for(int row=0;row<size;row++){
             for(int col=0;col<size;col++){
                 if(patternBoard[row][col]==1){
+                    if(row>rowCounter) rowCounter=row;
+                    if(col>colCounter) colCounter=col;
                     bricksAlreadyChecked++;
                     if(bricksAlreadyChecked==amountOfBricksInBlock){
-                        width   =   (row+1)*scale;
-                        height  =   (col+1)*scale;
+                        width   =   (rowCounter+1)*scale;
+                        height  =   (colCounter+1)*scale;
                         break;
                     }
                 }
             }
+        }
+    }
+    public void removeBrick(Brick brickToRemove){
+        brickList.remove(brickToRemove);
+    }
+    public void removeBricksInRow(int rowToDelete){
+        for(int i=0;i<brickList.size();i++){
+            Brick b = brickList.get(i);
+            if(rowToDelete==b.getRow()) removeBrick(b);
+        }
+    }
+    public void removeBricksInCol(int colToDelete){
+        for(int i=0;i<brickList.size();i++){
+            Brick b = brickList.get(i);
+            if(colToDelete==b.getCol()) removeBrick(b);
         }
     }
     public void setBeingDragged(boolean beingDragged) {
@@ -187,7 +247,12 @@ public class Block {
     public boolean isResized(){
         return resized;
     }
-
+    public boolean isOnBoard(){
+        return isOnBoard;
+    }
+    public boolean isOnHud() {
+        return isOnHud;
+    }
     private void setBrickPositions(int patternBoard[][],int amountOfBricksInBlock,boolean isOnBoard){
         Point[]brickPositions;
         brickPositions = new Point[amountOfBricksInBlock];
@@ -203,7 +268,7 @@ public class Block {
             }
         }
         for(int i=0;i<amountOfBricksInBlock;i++){
-            brickList.add(new Brick(brickPositions[i].x+x, brickPositions[i].y+y, isOnBoard));
+            brickList.add(new Brick(brickPositions[i].x+x, brickPositions[i].y+y, isOnBoard,handler));
         }
     }
     public Rectangle[]getBoundsArray(){
@@ -216,18 +281,6 @@ public class Block {
         return brickBounds;
     }
 
-    private void printPatternBoard(int patternBoard[][],BlockId id){
-        int size = patternBoard.length;
-        System.out.println("-----------\t"+id+"\t------------");
-        for(int row=0;row<size;row++){
-            for(int col=0;col<size;col++){
-                System.out.print(patternBoard[row][col]+" ");
-            }
-            System.out.println();
-        }
-        System.out.println("-----------------------");
-        System.out.println();
-    }
     private void createBlock(BlockId id,boolean isOnBoard){
         int size = 5;
         int amountOfBricksInBlock = 0;

@@ -53,6 +53,7 @@ public class Game extends JPanel implements Runnable{
         handler = new Handler(board);
         HUD hud = new HUD(80,571,641,216,handler);
         handler.addHud(hud);
+        board.addHUD(hud);
         canvas.addMouseListener(new MouseInput(handler));
         canvas.addMouseMotionListener(new MouseInput(handler));
         backgroundImg   =   loadImage("/background.png");

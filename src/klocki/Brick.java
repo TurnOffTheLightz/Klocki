@@ -1,19 +1,21 @@
 package klocki;
 
+import classes.Handler;
+
 import java.awt.*;
 
 public class Brick {
-    private int x,y,width,height;
-    private int startingX;
-    private int startingY;
+    private int x,y,width,height,startingX,startingY,row,col;
     private boolean isOnBoard;
+    private Handler handler;
 
-    Brick(int x, int y, boolean isOnBoard){
+    Brick(int x, int y, boolean isOnBoard, Handler handler){
         this.x=x;
         this.y=y;
         this.startingX=x;
         this.startingY=y;
         this.isOnBoard=isOnBoard;
+        this.handler=handler;
         if(isOnBoard){
             this.width=48;
             this.height=48;
@@ -50,13 +52,6 @@ public class Brick {
         this.x=x;
         this.y=y;
     }
-    public int getStartingX() {
-        return startingX;
-    }
-
-    public int getStartingY() {
-        return startingY;
-    }
     public void rearrangeToStartingPositions() {
         this.x=startingX;
         this.y=startingY;
@@ -79,6 +74,19 @@ public class Brick {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public void setRowAndCol() {
+        this.col = (x-handler.board.getX())/48;     //?
+        this.row = (y-handler.board.getY())/48;     //?
     }
 
     public boolean isOnBoard() {
