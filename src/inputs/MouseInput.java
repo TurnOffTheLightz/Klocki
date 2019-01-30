@@ -1,5 +1,7 @@
 package inputs;
 
+import classes.Board;
+import classes.Game;
 import classes.Handler;
 import klocki.Block;
 
@@ -12,16 +14,16 @@ public class MouseInput implements MouseListener,MouseMotionListener {
 
 
     public static int mouseDraggedX,mouseDraggedY;
+    public static int mouseMovedX,mouseMovedY;
     private Handler handler;
-
     private boolean draggingBlock;
-
-    private boolean mousePressed=false;
-    private boolean mouseReleased=false;
-    private boolean mouseDragged=false;
-
-
-
+    private final Rectangle //action button bounds
+            //game buttons
+            musicButtonRect = new Rectangle(40,215,210,85),//250,300
+            newGameRect = new Rectangle(0,420,250,105),//240,525
+            //gameOverScreen buttons
+            playAgainRect = new Rectangle(245,290,205,105),//550,395
+            exitRect = new Rectangle(300,435,190,115);//490,540
 
     public MouseInput(Handler handler){
         this.handler=handler;
@@ -68,9 +70,32 @@ public class MouseInput implements MouseListener,MouseMotionListener {
 
     @Override
     public void mousePressed(MouseEvent e){
+        int x = e.getX();
+        int y = e.getY();
+        if(!Board.gameOverScreen){
+            if(musicButtonRect.contains(x,y)){
+                Board.playSound("buttonPressed.wav");
+                if(handler.getMusic()){
+                    handler.setMusic(false);
+                }else{
+                    handler.setMusic(true);
+                }
+            }
+            if(newGameRect.contains(x,y)){
+                Board.playSound("buttonPressed.wav");
+                Board.newGame = true;
+            }
+        }else{
+            if(exitRect.contains(x,y)){
+                Board.playSound("buttonPressed.wav");
+                Game.exit=true;
+            }
+            if(playAgainRect.contains(x,y)){
+                Board.playSound("buttonPressed.wav");
+                Board.newGame = true;
+            }
+        }
     }
-
-
     @Override
     public void mouseEntered(MouseEvent e) {
 
@@ -84,7 +109,32 @@ public class MouseInput implements MouseListener,MouseMotionListener {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
         if(draggingBlock)draggingBlock=false;
+        mouseMovedX = e.getX();
+        mouseMovedY = e.getY();
+
+        int x = e.getX();
+        int y = e.getY();
+        if(!Board.gameOverScreen){
+            if(newGameRect.contains(x,y)){
+                Board.playSound("buttonMoved.wav");
+                handler.setNewGameHighlited(true);
+            }else{
+                handler.setNewGameHighlited(false);
+            }
+        }else{
+            if(playAgainRect.contains(x,y)){
+                Board.playSound("buttonMoved.wav");
+                handler.setPlayAgainHighlited(true);
+            }else{
+                handler.setPlayAgainHighlited(false);
+            }
+            if(exitRect.contains(x,y)){
+                Board.playSound("buttonMoved.wav");
+                handler.setExitHighlited(true);
+            }else{
+                handler.setExitHighlited(false);
+            }
+        }
     }
 }

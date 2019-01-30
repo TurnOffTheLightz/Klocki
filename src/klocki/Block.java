@@ -1,39 +1,52 @@
 package klocki;
 
 import Ids.BlockId;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-
 import classes.Board;
 import classes.Handler;
 import inputs.MouseInput;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Objects;
+
 public class Block {
-    private int x,y,width,height,startingX,startingY;
+    private int x,y,width,height,startingX,startingY,
+            effectStartX=800,effectStartY=596,
+                counter=0;
     private Handler handler;
     public ArrayList<Brick> brickList = new ArrayList<>();
 
-    private boolean isOnHud =   true;
+    public static final int
+                    BLUE=0,
+                    RED=1,
+                    GREEN=2,
+                    YELLOW=3,
+                    PURPLE=4;
+
+    private boolean isOnHud=true;
     private boolean isOnBoard;
     private boolean isBeingDragged=false;
     private boolean isPulled=false;
     private boolean resized =   false;
-    private boolean newBlockAnimation = false;
+    private boolean newBlockAnimation   =    true;
 
-    private int brickPattern[][];
+    private BufferedImage brickImg;
+
+    public int brickPattern[][];
     private Point brickXYPositions [];
-
     private Point lastPoint;
 
-    public Block(int x, int y, BlockId blockId, boolean isOnBoard, Handler handler){
+    public Block(int x, int y, BlockId blockId, boolean isOnBoard, Handler handler,int COLOR){
         this.x=x;
         this.y=y;
         this.startingX=x;
         this.startingY=y;
         this.isOnBoard=isOnBoard;
         this.handler=handler;
+        brickImg = getImageFromColor(COLOR);
         int size=5;
         brickPattern = new int[size][size];
         createBlock(blockId,isOnBoard);
@@ -46,6 +59,18 @@ public class Block {
         }
     }
     public void tick(){
+        if(newBlockAnimation){
+            effectStartX-=20;
+            for(Brick brick:brickList){
+                brick.setX(effectStartX);
+                if(effectStartX<brick.getStartingX()){
+                    for(Brick b : brickList) b.setX(b.getStartingX());
+                    Board.checkGameOver=true;
+                    newBlockAnimation=false;
+                    break;
+                }
+            }
+        }
         if(isBeingDragged){
             int scale=48;
             if(!resized){
@@ -65,8 +90,8 @@ public class Block {
             if(isOnBoard){
                 isOnHud=false;
                 resized = false;
-                handler.board.acceptMove(brickXYPositions,brickList);
                 handler.hud.insertNewRandomBlock(new Point(startingX,startingY));
+                handler.board.acceptMove(brickXYPositions,brickList);
                 width=0;
                 height=0;
             }else{
@@ -214,20 +239,29 @@ public class Block {
             }
         }
     }
-    public void removeBrick(Brick brickToRemove){
+    private void removeBrick(Brick brickToRemove) {
         brickList.remove(brickToRemove);
     }
     public void removeBricksInRow(int rowToDelete){
         for(int i=0;i<brickList.size();i++){
             Brick b = brickList.get(i);
-            if(rowToDelete==b.getRow()) removeBrick(b);
+            if(rowToDelete==b.getRow()  &&  isOnBoard){
+                removeBrick(b);
+            }
         }
+        if(brickList.isEmpty()) die();
     }
     public void removeBricksInCol(int colToDelete){
         for(int i=0;i<brickList.size();i++){
             Brick b = brickList.get(i);
-            if(colToDelete==b.getCol()) removeBrick(b);
+            if(colToDelete==b.getCol()  &&  isOnBoard){
+                removeBrick(b);
+            }
         }
+        if(brickList.isEmpty()) die();
+    }
+    private void die(){
+        handler.hud.removeBlock(this);
     }
     public void setBeingDragged(boolean beingDragged) {
         isBeingDragged = beingDragged;
@@ -241,18 +275,13 @@ public class Block {
     public boolean isPulled() {
         return isPulled;
     }
-    public void setResized(boolean r){
-        resized = r;
-    }
-    public boolean isResized(){
-        return resized;
-    }
     public boolean isOnBoard(){
         return isOnBoard;
     }
     public boolean isOnHud() {
         return isOnHud;
     }
+
     private void setBrickPositions(int patternBoard[][],int amountOfBricksInBlock,boolean isOnBoard){
         Point[]brickPositions;
         brickPositions = new Point[amountOfBricksInBlock];
@@ -268,7 +297,7 @@ public class Block {
             }
         }
         for(int i=0;i<amountOfBricksInBlock;i++){
-            brickList.add(new Brick(brickPositions[i].x+x, brickPositions[i].y+y, isOnBoard,handler));
+            brickList.add(new Brick(brickPositions[i].x+x, brickPositions[i].y+y, isOnBoard,handler,brickImg));
         }
     }
     public Rectangle[]getBoundsArray(){
@@ -439,6 +468,29 @@ public class Block {
                 break;
         }
         setBrickPositions(brickPattern,amountOfBricksInBlock,isOnBoard);
-//        printPatternBoard(brickPattern,id);
+    }
+    private BufferedImage getImageFromColor(int COLOR){
+        String color=null;
+        if(COLOR==BLUE){
+            color = "blue";
+        }else if(COLOR==RED){
+            color = "red";
+        }else if(COLOR==GREEN){
+            color = "green";
+        }else if(COLOR==YELLOW){
+            color = "yellow";
+        }else if(COLOR==PURPLE){
+            color = "purple";
+        }
+        return null;
+//        return loadImage("/bricks/"+color+".png");
+    }
+    private BufferedImage loadImage(String path){
+        try {
+            return ImageIO.read(getClass().getResource(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

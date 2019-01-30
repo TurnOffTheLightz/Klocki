@@ -19,8 +19,6 @@ public class HUD {
     private ArrayList<BlockId>blockIds = new ArrayList<>(Arrays.asList(BlockId.values()));  //copying all BlockId enum values into ArrayList
     private Handler handler;
 
-    public boolean newRand = false;
-
     HUD(int x, int y, int width, int height,Handler handler){
         this.x=x;
         this.y=y;
@@ -29,7 +27,6 @@ public class HUD {
         this.handler=handler;
         init();
     }
-
     public void render(Graphics g) {
         g.drawImage(hudImg,x,y,width,height,null);
         g.setColor(Color.black);
@@ -45,7 +42,7 @@ public class HUD {
         }
     }
 
-    public void addBlock(Block block){
+    private void addBlock(Block block){
         blockList.add(block);
     }
     public void removeBlock(Block block){
@@ -59,10 +56,12 @@ public class HUD {
             e.printStackTrace();
         }
         for(int i=0;i<3;i++){
+
             int index = rand.nextInt(blockIds.size());
+            int COLOR = rand.nextInt(5);
             BlockId id = blockIds.get(index);
             Point point = nextHudPositionPoint(i);
-            addBlock(new Block(point.x,point.y,id,false,handler));
+            addBlock(new Block(point.x,point.y,id,false,handler,COLOR));
         }
     }
     private Point nextHudPositionPoint(int whichOne){
@@ -74,7 +73,12 @@ public class HUD {
     public void insertNewRandomBlock(Point pointOfLastRemovedBlock){
         Random rand = new Random();
         int index = rand.nextInt(blockIds.size());
+        int COLOR = rand.nextInt(5);
         BlockId id = blockIds.get(index);
-        addBlock(new Block(pointOfLastRemovedBlock.x,pointOfLastRemovedBlock.y,id,false,handler));
+        addBlock(new Block(pointOfLastRemovedBlock.x,pointOfLastRemovedBlock.y,id,false,handler,COLOR));
+    }
+    public void startNewHud(){
+        blockList.clear();
+        init();
     }
 }

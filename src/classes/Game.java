@@ -1,8 +1,6 @@
 package classes;
 
 import inputs.MouseInput;
-import sun.awt.image.BufferedImageDevice;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -12,20 +10,18 @@ import java.io.IOException;
 
 public class Game extends JPanel implements Runnable{
 
-    private static final int  WIDTH = 200;
-    private static final int HEIGHT = 200;
-    private static final int SCALE = 4;
+    private final int  WIDTH = 200;
+    private final int HEIGHT = 200;
+    private final int SCALE = 4;
+    private int frames=0;
     private Canvas canvas;
 
     private Thread thread;
     private Handler handler;
     private boolean running;
+    public static boolean exit=false;
 
     private BufferedImage backgroundImg;
-
-    private int frames=0;
-
-
 
     private Game(){
         Dimension dim = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
@@ -49,9 +45,9 @@ public class Game extends JPanel implements Runnable{
         frame.pack();
     }
     private void init(){
-        Board board = new Board(160,40,481,481);
+        Board board = new Board(275,80,481,481);
         handler = new Handler(board);
-        HUD hud = new HUD(80,571,641,216,handler);
+        HUD hud = new HUD(140,571,641,216,handler);
         handler.addHud(hud);
         board.addHUD(hud);
         canvas.addMouseListener(new MouseInput(handler));
@@ -69,9 +65,9 @@ public class Game extends JPanel implements Runnable{
         g.drawImage(backgroundImg,0,0,WIDTH*SCALE,HEIGHT*SCALE,null);
 
         g.setColor(Color.white);
-        g.drawString("("+Integer.toString(MouseInput.mouseDraggedX)+","+Integer.toString(MouseInput.mouseDraggedY)+")",15,40);
-        handler.render(g);
+        g.drawString("("+Integer.toString(MouseInput.mouseMovedX)+","+Integer.toString(MouseInput.mouseMovedY)+")",730,40);
 
+        handler.render(g);
 
         g.dispose();
         bs.show();
@@ -79,6 +75,11 @@ public class Game extends JPanel implements Runnable{
     }
     private void tick(){
         handler.tick();
+        if(exit){
+            running=false;
+            stop();
+            System.exit(0);
+        }
     }
     private synchronized void start(){
         if(running) return;
@@ -86,7 +87,7 @@ public class Game extends JPanel implements Runnable{
         thread = new Thread(this);
         thread.start();
     }
-    public synchronized void stop(){
+    private synchronized void stop(){
         if(!running) return;
         running = false;
         try {
@@ -139,3 +140,4 @@ public class Game extends JPanel implements Runnable{
         return null;
     }
 }
+

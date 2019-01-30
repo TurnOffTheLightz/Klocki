@@ -3,19 +3,30 @@ package klocki;
 import classes.Handler;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class Brick {
-    private int x,y,width,height,startingX,startingY,row,col;
+    private int x;
+    private int y;
+    private int width;
+    private int height;
+    private int startingX;
+    private int startingY;
+    private int row;
+    private int col;
     private boolean isOnBoard;
     private Handler handler;
+    private Color color;
+    private BufferedImage brickImg;
 
-    Brick(int x, int y, boolean isOnBoard, Handler handler){
+    Brick(int x, int y, boolean isOnBoard, Handler handler, BufferedImage brickImg){
         this.x=x;
         this.y=y;
         this.startingX=x;
         this.startingY=y;
         this.isOnBoard=isOnBoard;
         this.handler=handler;
+        this.brickImg=brickImg;
         if(isOnBoard){
             this.width=48;
             this.height=48;
@@ -47,6 +58,14 @@ public class Brick {
     public void setY(int y) {
         this.y = y;
     }
+    public int getStartingX() {
+        return startingX;
+    }
+
+    public int getStartingY() {
+        return startingY;
+    }
+
 
     public void setXY(int x,int y){
         this.x=x;
