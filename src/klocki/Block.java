@@ -482,8 +482,7 @@ public class Block {
         }else if(COLOR==PURPLE){
             color = "purple";
         }
-        return null;
-//        return loadImage("/bricks/"+color+".png");
+        return loadImage("/bricks/"+color+".png");
     }
     private BufferedImage loadImage(String path){
         try {
