@@ -37,10 +37,6 @@ public class Brick {
     }
 
     public void render(Graphics g) {
-//        g.setColor(Color.blue);
-//        g.fillRect(x,y,width,height);
-//        g.setColor(Color.black);
-//        g.drawRect(x,y,width,height);
         g.drawImage(brickImg,x,y,width,height,null);
     }
 

@@ -54,6 +54,9 @@ public class Block {
         setWidthAndHeight(brickPattern,32);
     }
     public void render(Graphics g){
+        renderBricks(g);
+    }
+    private void renderBricks(Graphics g){
         for(Brick brick:brickList){
             brick.render(g);
         }

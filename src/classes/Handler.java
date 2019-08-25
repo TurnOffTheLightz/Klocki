@@ -12,11 +12,12 @@ public class Handler {
 
     public Board board;
     public HUD hud;
+
+    //Buttons
     private BufferedImage highScoreButtonImg;
     private BufferedImage musicOnButtonImg;
     private BufferedImage musicOffButtonImg;
     private BufferedImage newGameButtonImg;
-
     private BufferedImage playAgainButtonImg;
     private BufferedImage exitButtonImg;
     //highlited:
@@ -26,7 +27,8 @@ public class Handler {
     //other
     private BufferedImage[] coinImg;
     private BufferedImage gameOverInfoImg;
-    private final Point //render points
+    //points
+    private final Point
             highScoreP = new Point(-25,-25),
             musicP = new Point(0,190),
             newGameP = new Point(-50,380),
@@ -43,17 +45,20 @@ public class Handler {
     Handler(Board b) {
         this.board = b;
         loadAllImages();
-        backgroundMusic = new MusicPlay(MusicPlay.class.getResource("/sounds/soundtrack.wav"));
+        loadMusic();
     }
 
-    public void render(Graphics g) {
+    void render(Graphics g) {
+        renderBoard(g);
+        renderButtons(g);
+    }
+    private void renderBoard(Graphics g){
         if(!Board.gameOverScreen){
             board.render(g);
             hud.render(g);
         }
-        renderVisual(g);
     }
-    private void renderVisual(Graphics g){
+    private void renderButtons(Graphics g){
         if(!Board.gameOverScreen){
             g.drawImage(highScoreButtonImg,highScoreP.x,highScoreP.y,highScoreButtonImg.getWidth(),highScoreButtonImg.getHeight(),null);
             if(!newGameHighlited){
@@ -104,7 +109,11 @@ public class Handler {
         }
     }
 
-    public void tick() {
+    void tick() {
+        tickBoard();
+        tickMusic();
+    }
+    private void tickBoard(){
         if(!Board.gameOverScreen){
             board.tick();
             hud.tick();
@@ -121,6 +130,8 @@ public class Handler {
             board.startNewBoard();
             hud.startNewHud();
         }
+    }
+    private void tickMusic(){
         if(music&&startMusic){
             startMusic=false;
             backgroundMusic.loop();
@@ -129,10 +140,13 @@ public class Handler {
             backgroundMusic.stop();
         }
     }
-    public void addHud(HUD hud){
+    void addHud(HUD hud){
         this.hud=hud;
     }
 
+    private void loadMusic(){
+        backgroundMusic = new MusicPlay(MusicPlay.class.getResource("/sounds/soundtrack.wav"));
+    }
     private void loadAllImages(){
         highScoreButtonImg = loadImage("/buttons/highScoreButton.png");
         musicOnButtonImg = loadImage("/buttons/musicOnButton.png");

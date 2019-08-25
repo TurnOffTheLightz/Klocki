@@ -13,6 +13,7 @@ public class Game extends JPanel implements Runnable{
     private final int  WIDTH = 200;
     private final int HEIGHT = 200;
     private final int SCALE = 4;
+    private Dimension dim = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
     private int frames=0;
     private Canvas canvas;
 
@@ -23,8 +24,11 @@ public class Game extends JPanel implements Runnable{
 
     private BufferedImage backgroundImg;
 
-    private Game(){
-        Dimension dim = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
+    protected Game(){
+        setCanvas();
+        setFrame();
+    }
+    private void setCanvas(){
         this.canvas = new Canvas();
         canvas.setPreferredSize(dim);
         canvas.setMaximumSize(dim);
@@ -32,7 +36,8 @@ public class Game extends JPanel implements Runnable{
         setPreferredSize(dim);
         setMinimumSize(dim);
         setMaximumSize(dim);
-
+    }
+    private void setFrame(){
         JFrame frame = new JFrame("(:   KLOCKI  :)");
         frame.setResizable(false);
         frame.setSize(dim);
@@ -52,7 +57,7 @@ public class Game extends JPanel implements Runnable{
         board.addHUD(hud);
         canvas.addMouseListener(new MouseInput(handler));
         canvas.addMouseMotionListener(new MouseInput(handler));
-        backgroundImg   =   loadImage("/background.png");
+        backgroundImg   =   loadBackgroundImage();
     }
     private void render(){
         BufferStrategy bs = this.canvas.getBufferStrategy();
@@ -71,7 +76,6 @@ public class Game extends JPanel implements Runnable{
 
         g.dispose();
         bs.show();
-//        this.paintComponent(g);
     }
     private void tick(){
         handler.tick();
@@ -81,7 +85,7 @@ public class Game extends JPanel implements Runnable{
             System.exit(0);
         }
     }
-    private synchronized void start(){
+    synchronized void start(){
         if(running) return;
         running = true;
         thread = new Thread(this);
@@ -127,13 +131,9 @@ public class Game extends JPanel implements Runnable{
         }
     }
 
-    public static void main(String[] args) {
-        Game g = new Game();
-        g.start();
-    }
-    private BufferedImage loadImage(String path){
+    private BufferedImage loadBackgroundImage(){
         try {
-            return ImageIO.read(getClass().getResource(path));
+            return ImageIO.read(getClass().getResource("/background.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

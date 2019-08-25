@@ -2,7 +2,6 @@ package classes;
 
 import klocki.Block;
 import klocki.Brick;
-import sun.applet.Main;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
@@ -45,6 +44,15 @@ public class Board {
         this.y=y;
         this.width=w;
         this.height=h;
+        initBoard();
+    }
+
+    void render(Graphics g){
+        renderBoardImg(g);
+        renderAnimations(g);
+    }
+
+    private void initBoard(){
         int tabSize=5;
         rowToDelete = new int[tabSize];
         colToDelete = new int[tabSize];
@@ -56,9 +64,6 @@ public class Board {
             rowEffectPoint[i] = new Point(-1,-1);
             colEffectPoint[i] = new Point(-1,-1);
         }
-        createBoard();
-    }
-    private void createBoard(){
         try {
             boardImg = ImageIO.read(getClass().getResource("/board.png"));
             for(int i=0;i<7;i++){
@@ -71,24 +76,26 @@ public class Board {
         playSound("newGame.wav");
         initBoolBoard();
     }
-    public void render(Graphics g){
-            g.drawImage(boardImg,x,y,width,height,null);
-            if(deleteAnimation){
-                if(isRowBeingDeleted){
-                    for (Point p : rowEffectPoint) {
-                        if (p.x == -1 && p.y == -1) continue;
-                        g.drawImage(rowAnimation[animationCounter], p.x, p.y, rowAnimation[animationCounter].getWidth(), rowAnimation[animationCounter].getHeight(), null);
-                    }
-                }
-                if(isColBeingDeleted){
-                    for(Point p : colEffectPoint){
-                        if(p.x == -1 && p.y == -1) continue;
-                        g.drawImage(colAnimation[animationCounter],p.x,p.y,colAnimation[animationCounter].getWidth(),colAnimation[animationCounter].getHeight(),null);
-                    }
+    private void renderBoardImg(Graphics g){
+        g.drawImage(boardImg,x,y,width,height,null);
+    }
+    private void renderAnimations(Graphics g){
+        if(deleteAnimation){
+            if(isRowBeingDeleted){
+                for (Point p : rowEffectPoint) {
+                    if (p.x == -1 && p.y == -1) continue;
+                    g.drawImage(rowAnimation[animationCounter], p.x, p.y, rowAnimation[animationCounter].getWidth(), rowAnimation[animationCounter].getHeight(), null);
                 }
             }
+            if(isColBeingDeleted){
+                for(Point p : colEffectPoint){
+                    if(p.x == -1 && p.y == -1) continue;
+                    g.drawImage(colAnimation[animationCounter],p.x,p.y,colAnimation[animationCounter].getWidth(),colAnimation[animationCounter].getHeight(),null);
+                }
+            }
+        }
     }
-    public void tick() {
+    void tick() {
         if(isNewBlockOnBoard){
             isNewBlockOnBoard=false;
             addScore=true;

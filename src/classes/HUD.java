@@ -1,5 +1,6 @@
 package classes;
 
+
 import Ids.BlockId;
 import klocki.Block;
 
@@ -27,16 +28,25 @@ public class HUD {
         this.handler=handler;
         init();
     }
-    public void render(Graphics g) {
+
+    void render(Graphics g) {
+        renderHud(g);
+        renderBlocks(g);
+    }
+
+    private void renderHud(Graphics g){
         g.drawImage(hudImg,x,y,width,height,null);
         g.setColor(Color.black);
         g.drawRect(x-1,y-1,width+2,height+2);
+    }
 
+    private void renderBlocks(Graphics g){
         for(Block block:blockList){
             block.render(g);
         }
     }
-    public void tick(){
+
+    void tick(){
         for(int i=0;i<blockList.size();i++){
             blockList.get(i).tick();
         }
@@ -64,12 +74,15 @@ public class HUD {
             addBlock(new Block(point.x,point.y,id,false,handler,COLOR));
         }
     }
+
     private Point nextHudPositionPoint(int whichOne){
         return new Point(x+whichOne*200+40,y+25);
     }
+
     public Rectangle getBounds(){
         return new Rectangle(x,y,width,height);
     }
+
     public void insertNewRandomBlock(Point pointOfLastRemovedBlock){
         Random rand = new Random();
         int index = rand.nextInt(blockIds.size());
@@ -77,7 +90,8 @@ public class HUD {
         BlockId id = blockIds.get(index);
         addBlock(new Block(pointOfLastRemovedBlock.x,pointOfLastRemovedBlock.y,id,false,handler,COLOR));
     }
-    public void startNewHud(){
+
+    void startNewHud(){
         blockList.clear();
         init();
     }
